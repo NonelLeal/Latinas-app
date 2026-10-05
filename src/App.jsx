@@ -5,7 +5,8 @@ import {
     signInWithEmailAndPassword, 
     onAuthStateChanged, 
     signOut,
-    signInAnonymously 
+    signInAnonymously,
+    sendPasswordResetEmail
 } from 'firebase/auth';
 import { 
     onSnapshot, 
@@ -136,6 +137,45 @@ const App = () => {
         setAuthLoading(false);
     };
 
+    // Enviar email de redefinição de senha
+    const handlePasswordReset = async (targetEmail) => {
+        const resetEmail = (targetEmail || email || '').trim();
+
+        if (!resetEmail) {
+            showAlert('Digite seu e-mail para redefinir a senha', 'error');
+            return;
+        }
+
+        if (!isValidEmail(resetEmail)) {
+            showAlert('Por favor, insira um email válido', 'error');
+            return;
+        }
+
+        setAuthLoading(true);
+        try {
+            await sendPasswordResetEmail(auth, resetEmail);
+            showAlert('Enviamos um link de redefinição para seu e-mail', 'success');
+        } catch (error) {
+            console.error("Erro ao redefinir senha:", error);
+            let errorMessage = 'Erro ao enviar o e-mail de redefinição';
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'Não encontramos uma conta com esse e-mail';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Email inválido';
+                    break;
+                case 'auth/missing-email':
+                    errorMessage = 'Informe um e-mail';
+                    break;
+                default:
+                    errorMessage = error.message || 'Erro desconhecido';
+            }
+            showAlert(errorMessage, 'error');
+        }
+        setAuthLoading(false);
+    };
+
     // Lida com o logout
     const handleLogout = async () => {
         setAuthLoading(true);
@@ -243,7 +283,11 @@ const App = () => {
                                         Cadastre-se
                                     </button>
                                 </p>
-                                <button className="text-sm text-blue-500 font-semibold hover:underline">
+                                <button
+                                    onClick={() => handlePasswordReset()}
+                                    disabled={authLoading}
+                                    className="text-sm text-blue-500 font-semibold hover:underline disabled:opacity-50"
+                                >
                                     Esqueci minha senha
                                 </button>
                             </div>
@@ -530,25 +574,40 @@ const App = () => {
                                 </div>
                                 
                                 <div className="space-y-3">
-                                    <button className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200">
+                                    <button
+                                        onClick={() => showAlert('Alteração de e-mail estará disponível em breve', 'info')}
+                                        className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200"
+                                    >
                                         <div className="flex items-center space-x-3">
                                             <span className="text-xl">📧</span>
                                             <span className="font-semibold">Alterar email</span>
                                         </div>
                                     </button>
-                                    <button className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200">
+                                    <button
+                                        onClick={() => user?.email
+                                            ? handlePasswordReset(user.email)
+                                            : showAlert('Cadastre-se com e-mail para poder alterar a senha', 'info')}
+                                        disabled={authLoading}
+                                        className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200 disabled:opacity-50"
+                                    >
                                         <div className="flex items-center space-x-3">
                                             <span className="text-xl">🔒</span>
                                             <span className="font-semibold">Alterar senha</span>
                                         </div>
                                     </button>
-                                    <button className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200">
+                                    <button
+                                        onClick={() => showAlert('Configurações estarão disponíveis em breve', 'info')}
+                                        className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200"
+                                    >
                                         <div className="flex items-center space-x-3">
                                             <span className="text-xl">📱</span>
                                             <span className="font-semibold">Configurações</span>
                                         </div>
                                     </button>
-                                    <button className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200">
+                                    <button
+                                        onClick={() => showAlert('Latinas • Serviços de Limpeza Premium — Brasília, DF', 'info')}
+                                        className="w-full p-4 text-left bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all transform hover:scale-105 border border-gray-200"
+                                    >
                                         <div className="flex items-center space-x-3">
                                             <span className="text-xl">ℹ️</span>
                                             <span className="font-semibold">Sobre o app</span>
