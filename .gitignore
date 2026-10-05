@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Build de teste gerado localmente
+latinas-app-teste.html
+*.zip
